@@ -1,0 +1,1144 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KDJ Salon | Luxury Hair & Beauty</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              light: '#FFD6E0',
+              DEFAULT: '#FF5C8D',
+              dark: '#D23369',
+            },
+            secondary: {
+              light: '#E0F4FF',
+              DEFAULT: '#5C8DFF',
+              dark: '#2333D2',
+            },
+            dark: '#1A1A2E',
+            light: '#F9F9F9',
+          },
+          fontFamily: {
+            sans: ['"Montserrat"', 'sans-serif'],
+            serif: ['"Playfair Display"', 'serif'],
+          },
+          animation: {
+            'float': 'float 6s ease-in-out infinite',
+            'fade-in': 'fadeIn 1s ease-in',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-20px)' },
+            },
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+    
+    body {
+      scroll-behavior: smooth;
+    }
+    
+    .gradient-text {
+      background: linear-gradient(45deg, #FF5C8D, #5C8DFF);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    
+    .blob {
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    }
+    
+    .service-card:hover .service-icon {
+      transform: rotateY(180deg);
+    }
+    
+    #particles-js {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+    
+    .content-wrapper {
+      position: relative;
+      z-index: 1;
+    }
+    
+    .nav-link {
+      position: relative;
+    }
+    
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      bottom: -4px;
+      left: 0;
+      background-color: #FF5C8D;
+      transition: width 0.3s ease;
+    }
+    
+    .nav-link:hover::after {
+      width: 100%;
+    }
+    
+    .booking-form input, .booking-form select, .booking-form textarea {
+      transition: all 0.3s ease;
+    }
+    
+    .booking-form input:focus, .booking-form select:focus, .booking-form textarea:focus {
+      box-shadow: 0 0 0 2px rgba(255, 92, 141, 0.5);
+    }
+  </style>
+</head>
+<body class="bg-light text-dark font-sans antialiased overflow-x-hidden">
+
+  <!-- Loading Screen -->
+  <div id="loading" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center transition-opacity duration-500">
+    <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-primary"></div>
+    <p class="mt-4 text-lg font-medium">Loading KDJ Salon...</p>
+  </div>
+
+  <!-- 3D Background -->
+  <div id="threejs-container" class="fixed inset-0 -z-10 opacity-30"></div>
+
+  <!-- Navbar -->
+  <header class="fixed w-full bg-white/90 backdrop-blur-md shadow-sm z-40 transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+      <a href="#" class="text-2xl font-bold flex items-center">
+        <span class="gradient-text">KDJ</span>
+        <span class="ml-2 hidden sm:inline">Salon</span>
+      </a>
+      
+      <nav class="hidden md:flex space-x-8 items-center">
+        <a href="#home" class="nav-link text-sm font-medium hover:text-primary transition">Home</a>
+        <a href="#about" class="nav-link text-sm font-medium hover:text-primary transition">About</a>
+        <a href="#services" class="nav-link text-sm font-medium hover:text-primary transition">Services</a>
+        <a href="#team" class="nav-link text-sm font-medium hover:text-primary transition">Our Team</a>
+        <a href="#testimonials" class="nav-link text-sm font-medium hover:text-primary transition">Testimonials</a>
+        <a href="#contact" class="nav-link text-sm font-medium hover:text-primary transition">Contact</a>
+        <button onclick="openBookingModal()" class="bg-primary text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-primary-dark transition ml-4">
+          Book Now
+        </button>
+      </nav>
+      
+      <button id="mobile-menu-button" class="md:hidden text-dark focus:outline-none">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+      </button>
+    </div>
+    
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="hidden md:hidden bg-white py-4 px-6 shadow-lg">
+      <div class="flex flex-col space-y-4">
+        <a href="#home" class="nav-link text-sm font-medium hover:text-primary transition">Home</a>
+        <a href="#about" class="nav-link text-sm font-medium hover:text-primary transition">About</a>
+        <a href="#services" class="nav-link text-sm font-medium hover:text-primary transition">Services</a>
+        <a href="#team" class="nav-link text-sm font-medium hover:text-primary transition">Our Team</a>
+        <a href="#testimonials" class="nav-link text-sm font-medium hover:text-primary transition">Testimonials</a>
+        <a href="#contact" class="nav-link text-sm font-medium hover:text-primary transition">Contact</a>
+        <button onclick="openBookingModal()" class="bg-primary text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-primary-dark transition mt-2 w-full">
+          Book Now
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section id="home" class="min-h-screen flex items-center justify-center relative overflow-hidden pt-20">
+    <div id="particles-js" class="absolute inset-0"></div>
+    <div class="content-wrapper max-w-7xl mx-auto px-6 py-24 flex flex-col md:flex-row items-center">
+      <div class="md:w-1/2 mb-12 md:mb-0 text-center md:text-left">
+        <h1 class="text-4xl md:text-6xl font-bold mb-6 leading-tight">
+          <span class="gradient-text">Luxury</span> Hair & Beauty Experience
+        </h1>
+        <p class="text-lg md:text-xl text-gray-600 mb-8 max-w-lg">
+          At KDJ Salon, we transform your look with precision and artistry. Our expert stylists create personalized beauty experiences that enhance your natural beauty.
+        </p>
+        <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center md:justify-start">
+          <button onclick="openBookingModal()" class="bg-primary text-white px-8 py-3 rounded-full font-medium hover:bg-primary-dark transition shadow-lg hover:shadow-xl">
+            Book Appointment
+          </button>
+          <a href="#services" class="border-2 border-primary text-primary px-8 py-3 rounded-full font-medium hover:bg-primary-light transition shadow-lg hover:shadow-xl">
+            Explore Services
+          </a>
+        </div>
+      </div>
+      <div class="md:w-1/2 flex justify-center">
+        <div class="relative w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96">
+          <div class="absolute inset-0 bg-gradient-to-br from-primary to-secondary rounded-full blur-xl opacity-20 animate-pulse"></div>
+          <div class="absolute inset-4 bg-white rounded-full flex items-center justify-center shadow-2xl">
+            <div class="text-center p-6">
+              <div class="text-5xl mb-4 animate-float">
+                ✂️
+              </div>
+              <h3 class="text-xl font-bold gradient-text">KDJ Salon</h3>
+              <p class="text-sm text-gray-500 mt-2">Est. 2015</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce">
+      <a href="#about" class="text-gray-400 hover:text-primary transition">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+        </svg>
+      </a>
+    </div>
+  </section>
+
+  <!-- About Section -->
+  <section id="about" class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-4xl font-bold mb-4">About <span class="gradient-text">KDJ Salon</span></h2>
+        <div class="w-20 h-1 bg-gradient-to-r from-primary to-secondary mx-auto mb-6"></div>
+        <p class="text-gray-600 max-w-3xl mx-auto">
+          We're more than just a salon - we're a destination for transformation, relaxation, and self-care.
+        </p>
+      </div>
+      
+      <div class="flex flex-col lg:flex-row items-center gap-12">
+        <div class="lg:w-1/2">
+          <div class="bg-gray-100 rounded-3xl p-8 shadow-lg">
+            <h3 class="text-2xl font-bold mb-4">Our Story</h3>
+            <p class="text-gray-600 mb-6">
+              Founded in 2015 by master stylist Kamal De Silva, KDJ Salon has grown from a small boutique to one of the most sought-after beauty destinations in the region. Our commitment to excellence and personalized service has earned us a loyal clientele.
+            </p>
+            <p class="text-gray-600 mb-6">
+              We believe that beauty should be accessible to everyone, which is why we offer a range of services at various price points without compromising on quality.
+            </p>
+            <div class="flex flex-wrap gap-4">
+              <div class="flex items-center">
+                <div class="w-10 h-10 rounded-full bg-primary-light flex items-center justify-center mr-3">
+                  <i class="fas fa-award text-primary"></i>
+                </div>
+                <span class="font-medium">15+ Awards</span>
+              </div>
+              <div class="flex items-center">
+                <div class="w-10 h-10 rounded-full bg-primary-light flex items-center justify-center mr-3">
+                  <i class="fas fa-user text-primary"></i>
+                </div>
+                <span class="font-medium">5000+ Clients</span>
+              </div>
+              <div class="flex items-center">
+                <div class="w-10 h-10 rounded-full bg-primary-light flex items-center justify-center mr-3">
+                  <i class="fas fa-star text-primary"></i>
+                </div>
+                <span class="font-medium">5-Star Service</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="lg:w-1/2 grid grid-cols-2 gap-4">
+          <div class="bg-primary-light rounded-2xl p-6 h-48 flex flex-col justify-center items-center shadow-md hover:shadow-lg transition">
+            <div class="text-3xl text-primary mb-3">
+              <i class="fas fa-heart"></i>
+            </div>
+            <h4 class="font-bold text-center">Passionate Team</h4>
+            <p class="text-sm text-center text-gray-600 mt-2">Our stylists live and breathe beauty</p>
+          </div>
+          <div class="bg-secondary-light rounded-2xl p-6 h-48 flex flex-col justify-center items-center shadow-md hover:shadow-lg transition">
+            <div class="text-3xl text-secondary mb-3">
+              <i class="fas fa-seedling"></i>
+            </div>
+            <h4 class="font-bold text-center">Eco-Friendly</h4>
+            <p class="text-sm text-center text-gray-600 mt-2">Sustainable products and practices</p>
+          </div>
+          <div class="bg-secondary-light rounded-2xl p-6 h-48 flex flex-col justify-center items-center shadow-md hover:shadow-lg transition">
+            <div class="text-3xl text-secondary mb-3">
+              <i class="fas fa-gem"></i>
+            </div>
+            <h4 class="font-bold text-center">Luxury Experience</h4>
+            <p class="text-sm text-center text-gray-600 mt-2">Premium services at fair prices</p>
+          </div>
+          <div class="bg-primary-light rounded-2xl p-6 h-48 flex flex-col justify-center items-center shadow-md hover:shadow-lg transition">
+            <div class="text-3xl text-primary mb-3">
+              <i class="fas fa-hand-holding-heart"></i>
+            </div>
+            <h4 class="font-bold text-center">Community Focus</h4>
+            <p class="text-sm text-center text-gray-600 mt-2">Giving back to our local community</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services Section -->
+  <section id="services" class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-4xl font-bold mb-4">Our <span class="gradient-text">Services</span></h2>
+        <div class="w-20 h-1 bg-gradient-to-r from-primary to-secondary mx-auto mb-6"></div>
+        <p class="text-gray-600 max-w-3xl mx-auto">
+          We offer a comprehensive range of beauty services to meet all your needs. Each service is tailored to your unique features and preferences.
+        </p>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Service 1 -->
+        <div class="service-card bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300">
+          <div class="h-48 bg-gradient-to-r from-primary-light to-secondary-light flex items-center justify-center">
+            <div class="service-icon text-5xl text-white transition-transform duration-500">
+              ✂️
+            </div>
+          </div>
+          <div class="p-6">
+            <h3 class="text-xl font-bold mb-2">Precision Haircuts</h3>
+            <p class="text-gray-600 mb-4">Expert cuts tailored to your face shape and lifestyle, using the latest techniques.</p>
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-primary">From $45</span>
+              <button onclick="openBookingModal('Precision Haircut')" class="text-sm bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-full transition">
+                Book Now
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Service 2 -->
+        <div class="service-card bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300">
+          <div class="h-48 bg-gradient-to-r from-secondary-light to-primary-light flex items-center justify-center">
+            <div class="service-icon text-5xl text-white transition-transform duration-500">
+              🎨
+            </div>
+          </div>
+          <div class="p-6">
+            <h3 class="text-xl font-bold mb-2">Creative Coloring</h3>
+            <p class="text-gray-600 mb-4">From natural tones to bold fashion colors, our color specialists will bring your vision to life.</p>
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-primary">From $75</span>
+              <button onclick="openBookingModal('Creative Coloring')" class="text-sm bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-full transition">
+                Book Now
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Service 3 -->
+        <div class="service-card bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300">
+          <div class="h-48 bg-gradient-to-r from-primary-light to-secondary-light flex items-center justify-center">
+            <div class="service-icon text-5xl text-white transition-transform duration-500">
+              💆‍♀️
+            </div>
+          </div>
+          <div class="p-6">
+            <h3 class="text-xl font-bold mb-2">Luxury Facials</h3>
+            <p class="text-gray-600 mb-4">Rejuvenating treatments using premium skincare products for glowing, healthy skin.</p>
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-primary">From $65</span>
+              <button onclick="openBookingModal('Luxury Facial')" class="text-sm bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-full transition">
+                Book Now
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Service 4 -->
+        <div class="service-card bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300">
+          <div class="h-48 bg-gradient-to-r from-secondary-light to-primary-light flex items-center justify-center">
+            <div class="service-icon text-5xl text-white transition-transform duration-500">
+              💇‍♂️
+            </div>
+          </div>
+          <div class="p-6">
+            <h3 class="text-xl font-bold mb-2">Beard Grooming</h3>
+            <p class="text-gray-600 mb-4">Precision trimming, shaping, and conditioning for the perfect beard.</p>
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-primary">From $35</span>
+              <button onclick="openBookingModal('Beard Grooming')" class="text-sm bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-full transition">
+                Book Now
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Service 5 -->
+        <div class="service-card bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300">
+          <div class="h-48 bg-gradient-to-r from-primary-light to-secondary-light flex items-center justify-center">
+            <div class="service-icon text-5xl text-white transition-transform duration-500">
+              💅
+            </div>
+          </div>
+          <div class="p-6">
+            <h3 class="text-xl font-bold mb-2">Nail Artistry</h3>
+            <p class="text-gray-600 mb-4">Creative manicures and pedicures with the highest quality products.</p>
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-primary">From $40</span>
+              <button onclick="openBookingModal('Nail Artistry')" class="text-sm bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-full transition">
+                Book Now
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Service 6 -->
+        <div class="service-card bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300">
+          <div class="h-48 bg-gradient-to-r from-secondary-light to-primary-light flex items-center justify-center">
+            <div class="service-icon text-5xl text-white transition-transform duration-500">
+              💐
+            </div>
+          </div>
+          <div class="p-6">
+            <h3 class="text-xl font-bold mb-2">Bridal Packages</h3>
+            <p class="text-gray-600 mb-4">Complete bridal beauty services to make your special day perfect.</p>
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-primary">From $150</span>
+              <button onclick="openBookingModal('Bridal Package')" class="text-sm bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-full transition">
+                Book Now
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="text-center mt-12">
+        <button onclick="openBookingModal()" class="bg-gradient-to-r from-primary to-secondary text-white px-8 py-3 rounded-full font-medium hover:opacity-90 transition shadow-lg">
+          View All Services & Book
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Team Section -->
+  <section id="team" class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-4xl font-bold mb-4">Meet Our <span class="gradient-text">Artists</span></h2>
+        <div class="w-20 h-1 bg-gradient-to-r from-primary to-secondary mx-auto mb-6"></div>
+        <p class="text-gray-600 max-w-3xl mx-auto">
+          Our talented team of beauty professionals brings passion, creativity, and expertise to every service.
+        </p>
+      </div>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <!-- Team Member 1 -->
+        <div class="bg-gray-50 rounded-2xl overflow-hidden shadow-md hover:shadow-lg transition duration-300">
+          <div class="h-64 bg-gradient-to-br from-primary-light to-secondary-light flex items-center justify-center relative">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="w-32 h-32 rounded-full bg-white/30 backdrop-blur-sm"></div>
+            </div>
+            <div class="text-6xl z-10">
+              👩‍🎤
+            </div>
+          </div>
+          <div class="p-6 text-center">
+            <h3 class="text-xl font-bold">Kamal De Silva</h3>
+            <p class="text-primary text-sm font-medium mb-3">Founder & Master Stylist</p>
+            <p class="text-gray-600 text-sm">With 15+ years of experience, Kamal specializes in precision cuts and color correction.</p>
+            <div class="flex justify-center space-x-3 mt-4">
+              <a href="#" class="text-gray-400 hover:text-primary transition"><i class="fab fa-instagram"></i></a>
+              <a href="#" class="text-gray-400 hover:text-primary transition"><i class="fab fa-facebook"></i></a>
+              <a href="#" class="text-gray-400 hover:text-primary transition"><i class="fab fa-twitter"></i></a>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Team Member 2 -->
+        <div class="bg-gray-50 rounded-2xl overflow-hidden shadow-md hover:shadow-lg transition duration-300">
+          <div class="h-64 bg-gradient-to-br from-secondary-light to-primary-light flex items-center justify-center relative">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="w-32 h-32 rounded-full bg-white/30 backdrop-blur-sm"></div>
+            </div>
+            <div class="text-6xl z-10">
+              👨‍🎨
+            </div>
+          </div>
+          <div class="p-6 text-center">
+            <h3 class="text-xl font-bold">Dinesh Perera</h3>
+            <p class="text-primary text-sm font-medium mb-3">Color Specialist</p>
+            <p class="text-gray-600 text-sm">Dinesh creates stunning color transformations with his artistic vision and technical skill.</p>
+            <div class="flex justify-center space-x-3 mt-4">
+              <a href="#" class="text-gray-400 hover:text-primary transition"><i class="fab fa-instagram"></i></a>
+              <a href="#" class="text-gray-400 hover:text-primary transition"><i class="fab fa-facebook"></i></a>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Team Member 3 -->
+        <div class="bg-gray-50 rounded-2xl overflow-hidden shadow-md hover:shadow-lg transition duration-300">
+          <div class="h-64 bg-gradient-to-br from-primary-light to-secondary-light flex items-center justify-center relative">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="w-32 h-32 rounded-full bg-white/30 backdrop-blur-sm"></div>
+            </div>
+            <div class="text-6xl z-10">
+              👩‍⚕️
+            </div>
+          </div>
+          <div class="p-6 text-center">
+            <h3 class="text-xl font-bold">Nayomi Fernando</h3>
+            <p class="text-primary text-sm font-medium mb-3">Skincare Expert</p>
+            <p class="text-gray-600 text-sm">Nayomi's facials and skincare treatments deliver visible, lasting results.</p>
+            <div class="flex justify-center space-x-3 mt-4">
+              <a href="#" class="text-gray-400 hover:text-primary transition"><i class="fab fa-instagram"></i></a>
+              <a href="#" class="text-gray-400 hover:text-primary transition"><i class="fab fa-pinterest"></i></a>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Team Member 4 -->
+        <div class="bg-gray-50 rounded-2xl overflow-hidden shadow-md hover:shadow-lg transition duration-300">
+          <div class="h-64 bg-gradient-to-br from-secondary-light to-primary-light flex items-center justify-center relative">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="w-32 h-32 rounded-full bg-white/30 backdrop-blur-sm"></div>
+            </div>
+            <div class="text-6xl z-10">
+              💇‍♀️
+            </div>
+          </div>
+          <div class="p-6 text-center">
+            <h3 class="text-xl font-bold">Samanthi Jayasuriya</h3>
+            <p class="text-primary text-sm font-medium mb-3">Bridal Specialist</p>
+            <p class="text-gray-600 text-sm">Samanthi creates breathtaking bridal looks that enhance natural beauty.</p>
+            <div class="flex justify-center space-x-3 mt-4">
+              <a href="#" class="text-gray-400 hover:text-primary transition"><i class="fab fa-instagram"></i></a>
+              <a href="#" class="text-gray-400 hover:text-primary transition"><i class="fab fa-youtube"></i></a>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="text-center mt-12">
+        <button onclick="openBookingModal('Consultation')" class="border-2 border-primary text-primary px-8 py-3 rounded-full font-medium hover:bg-primary-light transition shadow-lg">
+          Book a Consultation
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials Section -->
+  <section id="testimonials" class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-4xl font-bold mb-4">Client <span class="gradient-text">Testimonials</span></h2>
+        <div class="w-20 h-1 bg-gradient-to-r from-primary to-secondary mx-auto mb-6"></div>
+        <p class="text-gray-600 max-w-3xl mx-auto">
+          Don't just take our word for it - hear what our clients have to say about their experiences at KDJ Salon.
+        </p>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Testimonial 1 -->
+        <div class="bg-white p-8 rounded-2xl shadow-md hover:shadow-lg transition duration-300">
+          <div class="flex items-center mb-4">
+            <div class="text-3xl mr-4">⭐️⭐️⭐️⭐️⭐️</div>
+          </div>
+          <p class="text-gray-600 italic mb-6">
+            "KDJ Salon transformed my hair! After years of damage from coloring, Kamal worked magic to restore health and give me a gorgeous cut. The entire team makes you feel like royalty."
+          </p>
+          <div class="flex items-center">
+            <div class="w-12 h-12 rounded-full bg-primary-light flex items-center justify-center mr-4">
+              <span class="text-lg">NR</span>
+            </div>
+            <div>
+              <h4 class="font-bold">Nuwan Rajapakse</h4>
+              <p class="text-sm text-gray-500">Client since 2018</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Testimonial 2 -->
+        <div class="bg-white p-8 rounded-2xl shadow-md hover:shadow-lg transition duration-300">
+          <div class="flex items-center mb-4">
+            <div class="text-3xl mr-4">⭐️⭐️⭐️⭐️⭐️</div>
+          </div>
+          <p class="text-gray-600 italic mb-6">
+            "As a bride, I was nervous about my wedding look. Samanthi listened to all my concerns and created the most beautiful hairstyle I could imagine. The makeup was flawless too!"
+          </p>
+          <div class="flex items-center">
+            <div class="w-12 h-12 rounded-full bg-primary-light flex items-center justify-center mr-4">
+              <span class="text-lg">DP</span>
+            </div>
+            <div>
+              <h4 class="font-bold">Dilani Perera</h4>
+              <p class="text-sm text-gray-500">Bridal Client</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Testimonial 3 -->
+        <div class="bg-white p-8 rounded-2xl shadow-md hover:shadow-lg transition duration-300">
+          <div class="flex items-center mb-4">
+            <div class="text-3xl mr-4">⭐️⭐️⭐️⭐️⭐️</div>
+          </div>
+          <p class="text-gray-600 italic mb-6">
+            "Dinesh is a color genius! He took my boring brown hair and created the most amazing dimensional color I've ever had. I get compliments everywhere I go now."
+          </p>
+          <div class="flex items-center">
+            <div class="w-12 h-12 rounded-full bg-primary-light flex items-center justify-center mr-4">
+              <span class="text-lg">SJ</span>
+            </div>
+            <div>
+              <h4 class="font-bold">Sachini Jayasinghe</h4>
+              <p class="text-sm text-gray-500">Client since 2020</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mt-12 bg-gradient-to-r from-primary to-secondary rounded-2xl p-8 text-white shadow-xl">
+        <div class="max-w-4xl mx-auto text-center">
+          <h3 class="text-2xl font-bold mb-4">Ready for Your Transformation?</h3>
+          <p class="mb-6">Join our community of satisfied clients and experience the KDJ difference.</p>
+          <button onclick="openBookingModal()" class="bg-white text-primary px-8 py-3 rounded-full font-medium hover:bg-gray-100 transition shadow-lg">
+            Book Your Appointment Today
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section id="contact" class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-4xl font-bold mb-4">Contact <span class="gradient-text">Us</span></h2>
+        <div class="w-20 h-1 bg-gradient-to-r from-primary to-secondary mx-auto mb-6"></div>
+        <p class="text-gray-600 max-w-3xl mx-auto">
+          We'd love to hear from you! Reach out to book an appointment or ask any questions.
+        </p>
+      </div>
+      
+      <div class="flex flex-col lg:flex-row gap-12">
+        <div class="lg:w-1/2">
+          <div class="bg-gray-50 rounded-2xl p-8 shadow-md">
+            <h3 class="text-xl font-bold mb-6">Get In Touch</h3>
+            
+            <div class="space-y-6">
+              <div class="flex items-start">
+                <div class="text-primary text-xl mr-4 mt-1">
+                  <i class="fas fa-map-marker-alt"></i>
+                </div>
+                <div>
+                  <h4 class="font-bold mb-1">Our Location</h4>
+                  <p class="text-gray-600">123 Kandy Road, Colombo 07, Sri Lanka</p>
+                </div>
+              </div>
+              
+              <div class="flex items-start">
+                <div class="text-primary text-xl mr-4 mt-1">
+                  <i class="fas fa-phone-alt"></i>
+                </div>
+                <div>
+                  <h4 class="font-bold mb-1">Call Us</h4>
+                  <p class="text-gray-600">+94 70 123 4567</p>
+                  <p class="text-gray-600">+94 11 234 5678</p>
+                </div>
+              </div>
+              
+              <div class="flex items-start">
+                <div class="text-primary text-xl mr-4 mt-1">
+                  <i class="fas fa-envelope"></i>
+                </div>
+                <div>
+                  <h4 class="font-bold mb-1">Email Us</h4>
+                  <p class="text-gray-600">hello@kdjsalon.lk</p>
+                  <p class="text-gray-600">bookings@kdjsalon.lk</p>
+                </div>
+              </div>
+              
+              <div class="flex items-start">
+                <div class="text-primary text-xl mr-4 mt-1">
+                  <i class="fas fa-clock"></i>
+                </div>
+                <div>
+                  <h4 class="font-bold mb-1">Opening Hours</h4>
+                  <p class="text-gray-600">Monday - Friday: 9:00 AM - 7:00 PM</p>
+                  <p class="text-gray-600">Saturday: 9:00 AM - 5:00 PM</p>
+                  <p class="text-gray-600">Sunday: 10:00 AM - 4:00 PM</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="mt-8">
+              <h4 class="font-bold mb-4">Follow Us</h4>
+              <div class="flex space-x-4">
+                <a href="#" class="w-10 h-10 rounded-full bg-primary-light text-primary flex items-center justify-center hover:bg-primary hover:text-white transition">
+                  <i class="fab fa-facebook-f"></i>
+                </a>
+                <a href="#" class="w-10 h-10 rounded-full bg-primary-light text-primary flex items-center justify-center hover:bg-primary hover:text-white transition">
+                  <i class="fab fa-instagram"></i>
+                </a>
+                <a href="#" class="w-10 h-10 rounded-full bg-primary-light text-primary flex items-center justify-center hover:bg-primary hover:text-white transition">
+                  <i class="fab fa-tiktok"></i>
+                </a>
+                <a href="#" class="w-10 h-10 rounded-full bg-primary-light text-primary flex items-center justify-center hover:bg-primary hover:text-white transition">
+                  <i class="fab fa-youtube"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="lg:w-1/2">
+          <div class="bg-gray-50 rounded-2xl p-8 shadow-md">
+            <h3 class="text-xl font-bold mb-6">Send Us a Message</h3>
+            <form id="contact-form" class="space-y-4">
+              <div>
+                <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Your Name</label>
+                <input type="text" id="name" name="name" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition">
+              </div>
+              
+              <div>
+                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                <input type="email" id="email" name="email" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition">
+              </div>
+              
+              <div>
+                <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                <input type="tel" id="phone" name="phone" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition">
+              </div>
+              
+              <div>
+                <label for="subject" class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                <select id="subject" name="subject" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition">
+                  <option value="">Select a subject</option>
+                  <option value="booking">Booking Inquiry</option>
+                  <option value="service">Service Question</option>
+                  <option value="feedback">Feedback</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              
+              <div>
+                <label for="message" class="block text-sm font-medium text-gray-700 mb-1">Your Message</label>
+                <textarea id="message" name="message" rows="4" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"></textarea>
+              </div>
+              
+              <button type="submit" class="w-full bg-primary text-white py-3 px-6 rounded-lg font-medium hover:bg-primary-dark transition shadow-md">
+                Send Message
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Map Section -->
+  <div class="h-96 w-full bg-gray-200 relative">
+    <div id="map" class="absolute inset-0"></div>
+    <div class="absolute inset-0 bg-gradient-to-t from-white/30 to-transparent pointer-events-none"></div>
+  </div>
+
+  <!-- Newsletter Section -->
+  <section class="py-16 bg-gradient-to-r from-primary to-secondary text-white">
+    <div class="max-w-4xl mx-auto px-6 text-center">
+      <h3 class="text-2xl md:text-3xl font-bold mb-4">Join Our Beauty Community</h3>
+      <p class="mb-8 max-w-2xl mx-auto">Subscribe to our newsletter for exclusive offers, beauty tips, and the latest trends.</p>
+      
+      <form class="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+        <input type="email" placeholder="Your email address" required class="flex-grow px-4 py-3 rounded-full text-gray-800 focus:outline-none focus:ring-2 focus:ring-white">
+        <button type="submit" class="bg-white text-primary px-6 py-3 rounded-full font-medium hover:bg-gray-100 transition shadow-lg whitespace-nowrap">
+          Subscribe
+        </button>
+      </form>
+      
+      <p class="text-sm mt-4 opacity-80">We respect your privacy. Unsubscribe at any time.</p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-dark text-white py-12">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div>
+          <h4 class="text-xl font-bold mb-4 gradient-text">KDJ Salon</h4>
+          <p class="text-gray-400">Where beauty meets artistry. Transforming looks and confidence since 2015.</p>
+        </div>
+        
+        <div>
+          <h5 class="font-bold mb-4 text-white">Quick Links</h5>
+          <ul class="space-y-2">
+            <li><a href="#home" class="text-gray-400 hover:text-white transition">Home</a></li>
+            <li><a href="#about" class="text-gray-400 hover:text-white transition">About Us</a></li>
+            <li><a href="#services" class="text-gray-400 hover:text-white transition">Services</a></li>
+            <li><a href="#team" class="text-gray-400 hover:text-white transition">Our Team</a></li>
+            <li><a href="#contact" class="text-gray-400 hover:text-white transition">Contact</a></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h5 class="font-bold mb-4 text-white">Services</h5>
+          <ul class="space-y-2">
+            <li><a href="#" class="text-gray-400 hover:text-white transition">Haircuts</a></li>
+            <li><a href="#" class="text-gray-400 hover:text-white transition">Coloring</a></li>
+            <li><a href="#" class="text-gray-400 hover:text-white transition">Facials</a></li>
+            <li><a href="#" class="text-gray-400 hover:text-white transition">Bridal</a></li>
+            <li><a href="#" class="text-gray-400 hover:text-white transition">Nails</a></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h5 class="font-bold mb-4 text-white">Connect</h5>
+          <div class="flex space-x-4 mb-4">
+            <a href="#" class="w-10 h-10 rounded-full bg-gray-800 text-white flex items-center justify-center hover:bg-primary transition">
+              <i class="fab fa-facebook-f"></i>
+            </a>
+            <a href="#" class="w-10 h-10 rounded-full bg-gray-800 text-white flex items-center justify-center hover:bg-primary transition">
+              <i class="fab fa-instagram"></i>
+            </a>
+            <a href="#" class="w-10 h-10 rounded-full bg-gray-800 text-white flex items-center justify-center hover:bg-primary transition">
+              <i class="fab fa-tiktok"></i>
+            </a>
+            <a href="#" class="w-10 h-10 rounded-full bg-gray-800 text-white flex items-center justify-center hover:bg-primary transition">
+              <i class="fab fa-youtube"></i>
+            </a>
+          </div>
+          <p class="text-gray-400 text-sm">123 Kandy Road, Colombo 07</p>
+          <p class="text-gray-400 text-sm">Sri Lanka</p>
+        </div>
+      </div>
+      
+      <div class="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
+        <p class="text-gray-400 text-sm mb-4 md:mb-0">&copy; 2025 KDJ Salon. All rights reserved.</p>
+        <div class="flex space-x-6">
+          <a href="#" class="text-gray-400 hover:text-white transition text-sm">Privacy Policy</a>
+          <a href="#" class="text-gray-400 hover:text-white transition text-sm">Terms of Service</a>
+          <a href="#" class="text-gray-400 hover:text-white transition text-sm">Sitemap</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Booking Modal -->
+  <div id="booking-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-95">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-2xl font-bold">Book Your Appointment</h3>
+          <button onclick="closeBookingModal()" class="text-gray-500 hover:text-gray-700">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        
+        <form id="booking-form" class="booking-form space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="booking-name" class="block text-sm font-medium text-gray-700 mb-1">Full Name*</label>
+              <input type="text" id="booking-name" name="name" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition">
+            </div>
+            
+            <div>
+              <label for="booking-phone" class="block text-sm font-medium text-gray-700 mb-1">Phone Number*</label>
+              <input type="tel" id="booking-phone" name="phone" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition">
+            </div>
+          </div>
+          
+          <div>
+            <label for="booking-email" class="block text-sm font-medium text-gray-700 mb-1">Email Address*</label>
+            <input type="email" id="booking-email" name="email" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition">
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="booking-service" class="block text-sm font-medium text-gray-700 mb-1">Service*</label>
+              <select id="booking-service" name="service" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition">
+                <option value="">Select a service</option>
+                <option value="haircut">Haircut</option>
+                <option value="coloring">Hair Coloring</option>
+                <option value="facial">Facial Treatment</option>
+                <option value="beard">Beard Grooming</option>
+                <option value="bridal">Bridal Package</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            
+            <div>
+              <label for="booking-stylist" class="block text-sm font-medium text-gray-700 mb-1">Preferred Stylist</label>
+              <select id="booking-stylist" name="stylist" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition">
+                <option value="">No preference</option>
+                <option value="kamal">Kamal De Silva</option>
+                <option value="dinesh">Dinesh Perera</option>
+                <option value="nayomi">Nayomi Fernando</option>
+                <option value="samanthi">Samanthi Jayasuriya</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="booking-date" class="block text-sm font-medium text-gray-700 mb-1">Date*</label>
+              <input type="date" id="booking-date" name="date" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition">
+            </div>
+            
+            <div>
+              <label for="booking-time" class="block text-sm font-medium text-gray-700 mb-1">Time*</label>
+              <select id="booking-time" name="time" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition">
+                <option value="">Select a time</option>
+                <option value="09:00">9:00 AM</option>
+                <option value="10:00">10:00 AM</option>
+                <option value="11:00">11:00 AM</option>
+                <option value="12:00">12:00 PM</option>
+                <option value="13:00">1:00 PM</option>
+                <option value="14:00">2:00 PM</option>
+                <option value="15:00">3:00 PM</option>
+                <option value="16:00">4:00 PM</option>
+                <option value="17:00">5:00 PM</option>
+              </select>
+            </div>
+          </div>
+          
+          <div>
+            <label for="booking-notes" class="block text-sm font-medium text-gray-700 mb-1">Special Requests</label>
+            <textarea id="booking-notes" name="notes" rows="3" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"></textarea>
+          </div>
+          
+          <div class="pt-2">
+            <button type="submit" class="w-full bg-primary text-white py-3 px-6 rounded-lg font-medium hover:bg-primary-dark transition shadow-md">
+              Confirm Booking
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Toast -->
+  <div id="success-toast" class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 transform translate-y-10 opacity-0 transition-all duration-300 z-50">
+    <i class="fas fa-check-circle text-xl"></i>
+    <div>
+      <p class="font-medium">Booking Successful!</p>
+      <p class="text-sm">We'll contact you shortly to confirm.</p>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    // Loading screen
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        document.getElementById('loading').style.opacity = '0';
+        setTimeout(function() {
+          document.getElementById('loading').style.display = 'none';
+        }, 500);
+      }, 1000);
+    });
+
+    // Mobile menu toggle
+    document.getElementById('mobile-menu-button').addEventListener('click', function() {
+      const menu = document.getElementById('mobile-menu');
+      menu.classList.toggle('hidden');
+    });
+
+    // Close mobile menu when clicking a link
+    document.querySelectorAll('#mobile-menu a').forEach(link => {
+      link.addEventListener('click', function() {
+        document.getElementById('mobile-menu').classList.add('hidden');
+      });
+    });
+
+    // Booking modal functions
+    function openBookingModal(service = '') {
+      const modal = document.getElementById('booking-modal');
+      if (service) {
+        document.getElementById('booking-service').value = service.toLowerCase().includes('haircut') ? 'haircut' : 
+                                                         service.toLowerCase().includes('color') ? 'coloring' : 
+                                                         service.toLowerCase().includes('facial') ? 'facial' : 
+                                                         service.toLowerCase().includes('beard') ? 'beard' : 
+                                                         service.toLowerCase().includes('bridal') ? 'bridal' : '';
+      }
+      modal.classList.remove('pointer-events-none');
+      modal.classList.add('pointer-events-auto');
+      modal.classList.remove('opacity-0');
+      modal.classList.add('opacity-100');
+      document.querySelector('#booking-modal > div').classList.remove('scale-95');
+      document.querySelector('#booking-modal > div').classList.add('scale-100');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeBookingModal() {
+      const modal = document.getElementById('booking-modal');
+      modal.classList.add('pointer-events-none');
+      modal.classList.remove('pointer-events-auto');
+      modal.classList.add('opacity-0');
+      modal.classList.remove('opacity-100');
+      document.querySelector('#booking-modal > div').classList.add('scale-95');
+      document.querySelector('#booking-modal > div').classList.remove('scale-100');
+      document.body.style.overflow = 'auto';
+    }
+
+    // Form submission
+    document.getElementById('booking-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      closeBookingModal();
+      showSuccessToast();
+      this.reset();
+    });
+
+    document.getElementById('contact-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      showSuccessToast('Message sent successfully!');
+      this.reset();
+    });
+
+    function showSuccessToast(message = 'Booking Successful!') {
+      const toast = document.getElementById('success-toast');
+      toast.querySelector('div p:first-child').textContent = message;
+      toast.classList.remove('translate-y-10', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      
+      setTimeout(function() {
+        toast.classList.add('translate-y-10', 'opacity-0');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 3000);
+    }
+
+    // Three.js background
+    function initThreeJS() {
+      const container = document.getElementById('threejs-container');
+      if (!container) return;
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      container.appendChild(renderer.domElement);
+
+      // Create floating shapes
+      const geometry = new THREE.IcosahedronGeometry(1, 0);
+      const material = new THREE.MeshBasicMaterial({ 
+        color: 0xFF5C8D,
+        transparent: true,
+        opacity: 0.3,
+        wireframe: true
+      });
+
+      const shapes = [];
+      for (let i = 0; i < 8; i++) {
+        const shape = new THREE.Mesh(geometry, material.clone());
+        shape.position.x = Math.random() * 20 - 10;
+        shape.position.y = Math.random() * 20 - 10;
+        shape.position.z = Math.random() * 20 - 10;
+        shape.scale.setScalar(Math.random() * 0.5 + 0.5);
+        shapes.push(shape);
+        scene.add(shape);
+      }
+
+      camera.position.z = 5;
+
+      function animate() {
+        requestAnimationFrame(animate);
+        
+        shapes.forEach((shape, i) => {
+          shape.rotation.x += 0.005 * (i + 1);
+          shape.rotation.y += 0.01 * (i + 1);
+          shape.position.y += Math.sin(Date.now() * 0.001 + i) * 0.01;
+        });
+
+        renderer.render(scene, camera);
+      }
+
+      animate();
+
+      window.addEventListener('resize', function() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+    }
+
+    // p5.js particles
+    function initParticles() {
+      new p5(function(p) {
+        p.setup = function() {
+          const canvas = p.createCanvas(window.innerWidth, window.innerHeight);
+          canvas.position(0, 0);
+          canvas.style('z-index', '-1');
+          p.noStroke();
+        };
+
+        p.draw = function() {
+          p.clear();
+          p.fill(255, 92, 141, 10);
+          
+          for (let i = 0; i < 50; i++) {
+            const x = p.noise(i * 100 + p.frameCount * 0.01) * p.width;
+            const y = p.noise(i * 100 + 1000 + p.frameCount * 0.01) * p.height;
+            const size = p.noise(i * 100 + 2000 + p.frameCount * 0.01) * 10;
+            p.ellipse(x, y, size, size);
+          }
+        };
+
+        p.windowResized = function() {
+          p.resizeCanvas(window.innerWidth, window.innerHeight);
+        };
+      }, 'particles-js');
+    }
+
+    // Initialize all effects
+    document.addEventListener('DOMContentLoaded', function() {
+      initThreeJS();
+      initParticles();
+      
+      // Simple map placeholder
+      const map = document.getElementById('map');
+      if (map) {
+        map.innerHTML = `
+          <div class="w-full h-full flex items-center justify-center bg-gray-200">
+            <div class="text-center p-8">
+              <i class="fas fa-map-marker-alt text-4xl text-primary mb-4"></i>
+              <h4 class="text-xl font-bold mb-2">Our Location</h4>
+              <p class="text-gray-600">123 Kandy Road, Colombo 07, Sri Lanka</p>
+            </div>
+          </div>
+        `;
+      }
+      
+      // Smooth scrolling for anchor links
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+          e.preventDefault();
+          const target = document.querySelector(this.getAttribute('href'));
+          if (target) {
+            window.scrollTo({
+              top: target.offsetTop - 80,
+              behavior: 'smooth'
+            });
+          }
+        });
+      });
+      
+      // Navbar scroll effect
+      window.addEventListener('scroll', function() {
+        const header = document.querySelector('header');
+        if (window.scrollY > 50) {
+          header.classList.add('shadow-lg');
+          header.classList.remove('shadow-sm');
+        } else {
+          header.classList.remove('shadow-lg');
+          header.classList.add('shadow-sm');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
